@@ -12,6 +12,8 @@
 #include <linux/usb/hcd.h>
 #include "usb.h"
 
+#ifndef CONFIG_USB_NO_QUIRKS
+
 struct quirk_entry {
 	u16 vid;
 	u16 pid;
@@ -653,3 +655,5 @@ void usb_release_quirk_list(void)
 	quirk_list = NULL;
 	mutex_unlock(&quirk_mutex);
 }
+
+#endif // CONFIG_USB_NO_QUIRKS
