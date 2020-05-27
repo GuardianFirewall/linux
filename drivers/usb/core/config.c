@@ -5,6 +5,7 @@
 
 #include <linux/usb.h>
 #include <linux/usb/ch9.h>
+#include <linux/usb/dfu.h> // DFU specific descriptor
 #include <linux/usb/hcd.h>
 #include <linux/usb/quirks.h>
 #include <linux/module.h>
