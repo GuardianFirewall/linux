@@ -36,6 +36,18 @@ menuconfig USB_SUPPORT
 
 if USB_SUPPORT
 
+menu "USB Security and Hardening"
+
+config USB_NO_QUIRKS
+	bool "Disable USB Quirks System"
+	depends on USB_SUPPORT
+	---help---
+		Enabling this disables device specific quirks system.  All devices will be
+		treated as though they conform to the USB specification.  This may break
+		older hardware which does not strictly conform to the USB specification.
+
+endmenu
+
 source "drivers/usb/common/Kconfig"
 
 config USB_ARCH_HAS_HCD
@@ -53,7 +65,7 @@ config USB
 	  traditional PC serial port.  The bus supplies power to peripherals
 	  and allows for hot swapping.  Up to 127 USB peripherals can be
 	  connected to a single USB host in a tree structure.
-	  
+
 	  The USB host is the root of the tree, the peripherals are the
 	  leaves and the inner nodes are special USB devices called hubs.
 	  Most PCs now have USB host ports, used to connect peripherals
