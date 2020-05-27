@@ -27,6 +27,17 @@ struct usb_device;
 struct usb_driver;
 struct wusb_dev;
 
+#ifdef CONFIG_USB_NO_QUIRKS
+#define USB_HAS_QUIRK(device, name) (false)
+#define USB_ADD_QUIRK(device, name)
+#define USB_DEL_QUIRK(device, name)
+#else
+#define USB_HAS_QUIRK(device, name) (device->quirks & name)
+#define USB_ADD_QUIRK(device, name) (device->quirks |= name)
+#define USB_DEL_QUIRK(device, name) (device->quirks &= ~name)
+#endif
+
+
 /*-------------------------------------------------------------------------*/
 
 /*

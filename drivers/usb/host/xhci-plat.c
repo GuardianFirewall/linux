@@ -73,7 +73,8 @@ static void xhci_plat_quirks(struct device *dev, struct xhci_hcd *xhci)
 	 * here that the generic code does not try to make a pci_dev from our
 	 * dev struct in order to setup MSI
 	 */
-	xhci->quirks |= XHCI_PLAT | priv->quirks;
+	USB_ADD_QUIRK(xhci, XHCI_PLAT);
+	USB_ADD_QUIRK(xhci, priv->quirks);
 }
 
 /* called during probe() after chip reset completes */
@@ -280,13 +281,13 @@ static int xhci_plat_probe(struct platform_device *pdev)
 	for (tmpdev = &pdev->dev; tmpdev; tmpdev = tmpdev->parent) {
 
 		if (device_property_read_bool(tmpdev, "usb2-lpm-disable"))
-			xhci->quirks |= XHCI_HW_LPM_DISABLE;
+			USB_ADD_QUIRK(xhci, XHCI_HW_LPM_DISABLE);
 
 		if (device_property_read_bool(tmpdev, "usb3-lpm-capable"))
-			xhci->quirks |= XHCI_LPM_SUPPORT;
+			USB_ADD_QUIRK(xhci, XHCI_LPM_SUPPORT);
 
 		if (device_property_read_bool(tmpdev, "quirk-broken-port-ped"))
-			xhci->quirks |= XHCI_BROKEN_PORT_PED;
+			USB_ADD_QUIRK(xhci, XHCI_BROKEN_PORT_PED);
 
 		device_property_read_u32(tmpdev, "imod-interval-ns",
 					 &xhci->imod_interval);

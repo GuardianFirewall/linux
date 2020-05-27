@@ -185,7 +185,7 @@ static int spcp8x5_set_ctrl_line(struct usb_serial_port *port, u8 mcr)
 	struct usb_device *dev = port->serial->dev;
 	int retval;
 
-	if (priv->quirks & SPCP825_QUIRK_NO_UART_STATUS)
+	if (USB_HAS_QUIRK(priv, SPCP825_QUIRK_NO_UART_STATUS))
 		return -EPERM;
 
 	retval = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
@@ -205,7 +205,7 @@ static int spcp8x5_get_msr(struct usb_serial_port *port, u8 *status)
 	u8 *buf;
 	int ret;
 
-	if (priv->quirks & SPCP825_QUIRK_NO_UART_STATUS)
+	if (USB_HAS_QUIRK(priv, SPCP825_QUIRK_NO_UART_STATUS))
 		return -EPERM;
 
 	buf = kzalloc(1, GFP_KERNEL);
@@ -238,7 +238,7 @@ static void spcp8x5_set_work_mode(struct usb_serial_port *port, u16 value,
 	struct usb_device *dev = port->serial->dev;
 	int ret;
 
-	if (priv->quirks & SPCP825_QUIRK_NO_WORK_MODE)
+	if (USB_HAS_QUIRK(priv, SPCP825_QUIRK_NO_WORK_MODE))
 		return;
 
 	ret = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),

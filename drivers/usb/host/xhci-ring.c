@@ -231,7 +231,7 @@ static void inc_enq(struct xhci_hcd *xhci, struct xhci_ring *ring,
 		 * (which may mean the chain bit is cleared).
 		 */
 		if (!(ring->type == TYPE_ISOC &&
-		      (xhci->quirks & XHCI_AMD_0x96_HOST)) &&
+		      (USB_HAS_QUIRK(xhci, XHCI_AMD_0x96_HOST))) &&
 		    !xhci_link_trb_quirk(xhci)) {
 			next->link.control &= cpu_to_le32(~TRB_CHAIN);
 			next->link.control |= cpu_to_le32(chain);
@@ -669,7 +669,7 @@ static void xhci_giveback_urb_in_irq(struct xhci_hcd *xhci,
 	if (usb_pipetype(urb->pipe) == PIPE_ISOCHRONOUS) {
 		xhci_to_hcd(xhci)->self.bandwidth_isoc_reqs--;
 		if (xhci_to_hcd(xhci)->self.bandwidth_isoc_reqs	== 0) {
-			if (xhci->quirks & XHCI_AMD_PLL_FIX)
+			if (USB_HAS_QUIRK(xhci, XHCI_AMD_PLL_FIX))
 				usb_amd_quirk_pll_enable();
 		}
 	}
@@ -1175,7 +1175,7 @@ static void xhci_handle_cmd_reset_ep(struct xhci_hcd *xhci, int slot_id,
 	 * command complete before the endpoint can be used.  Queue that here
 	 * because the HW can't handle two commands being queued in a row.
 	 */
-	if (xhci->quirks & XHCI_RESET_EP_QUIRK) {
+	if (USB_HAS_QUIRK(xhci, XHCI_RESET_EP_QUIRK)) {
 		struct xhci_command *command;
 
 		command = xhci_alloc_command(xhci, false, GFP_ATOMIC);
@@ -1219,7 +1219,7 @@ static void xhci_handle_cmd_disable_slot(struct xhci_hcd *xhci, int slot_id)
 	slot_ctx = xhci_get_slot_ctx(xhci, virt_dev->out_ctx);
 	trace_xhci_handle_cmd_disable_slot(slot_ctx);
 
-	if (xhci->quirks & XHCI_EP_LIMIT_QUIRK)
+	if (USB_HAS_QUIRK(xhci, XHCI_EP_LIMIT_QUIRK))
 		/* Delete default control endpoint resources */
 		xhci_free_device_endpoint_resources(xhci, virt_dev, true);
 	xhci_free_virt_device(xhci, slot_id);
@@ -1264,7 +1264,7 @@ static void xhci_handle_cmd_config_ep(struct xhci_hcd *xhci, int slot_id,
 	 * if this will work for streams, but streams support was
 	 * untested on this prototype.
 	 */
-	if (xhci->quirks & XHCI_RESET_EP_QUIRK &&
+	if (USB_HAS_QUIRK(xhci, XHCI_RESET_EP_QUIRK) &&
 			ep_index != (unsigned int) -1 &&
 			add_flags - SLOT_FLAG == drop_flags) {
 		ep_state = virt_dev->eps[ep_index].ep_state;
@@ -1311,7 +1311,7 @@ static void xhci_handle_cmd_reset_dev(struct xhci_hcd *xhci, int slot_id,
 static void xhci_handle_cmd_nec_get_fw(struct xhci_hcd *xhci,
 		struct xhci_event_cmd *event)
 {
-	if (!(xhci->quirks & XHCI_NEC_HOST)) {
+	if (!(USB_HAS_QUIRK(xhci, XHCI_NEC_HOST))) {
 		xhci_warn(xhci, "WARN NEC_GET_FW command on non-NEC host\n");
 		return;
 	}
@@ -1534,7 +1534,7 @@ static void handle_vendor_event(struct xhci_hcd *xhci,
 
 	trb_type = TRB_FIELD_TO_TYPE(le32_to_cpu(event->generic.field[3]));
 	xhci_dbg(xhci, "Vendor specific event TRB type = %u\n", trb_type);
-	if (trb_type == TRB_NEC_CMD_COMP && (xhci->quirks & XHCI_NEC_HOST))
+	if (trb_type == TRB_NEC_CMD_COMP && (USB_HAS_QUIRK(xhci, XHCI_NEC_HOST)))
 		handle_cmd_completion(xhci, &event->event_cmd);
 }
 
@@ -1734,7 +1734,7 @@ static void handle_port_status(struct xhci_hcd *xhci,
 
 	if (hcd->speed < HCD_USB3) {
 		xhci_test_and_clear_bit(xhci, port, PORT_PLC);
-		if ((xhci->quirks & XHCI_RESET_PLL_ON_DISCONNECT) &&
+		if ((USB_HAS_QUIRK(xhci, XHCI_RESET_PLL_ON_DISCONNECT)) &&
 		    (portsc & PORT_CSC) && !(portsc & PORT_CONNECT))
 			xhci_cavium_reset_phy_quirk(xhci);
 	}
@@ -2169,7 +2169,7 @@ static int process_isoc_td(struct xhci_hcd *xhci, struct xhci_td *td,
 	case COMP_SUCCESS:
 		if (remaining) {
 			frame->status = short_framestatus;
-			if (xhci->quirks & XHCI_TRUST_TX_LENGTH)
+			if (USB_HAS_QUIRK(xhci, XHCI_TRUST_TX_LENGTH))
 				sum_trbs_for_length = true;
 			break;
 		}
@@ -2411,7 +2411,7 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 	case COMP_SUCCESS:
 		if (EVENT_TRB_LEN(le32_to_cpu(event->transfer_len)) == 0)
 			break;
-		if (xhci->quirks & XHCI_TRUST_TX_LENGTH ||
+		if (USB_HAS_QUIRK(xhci, XHCI_TRUST_TX_LENGTH) ||
 		    ep_ring->last_td_was_short)
 			trb_comp_code = COMP_SHORT_PACKET;
 		else
@@ -2613,7 +2613,7 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 				 * successful event after a short transfer.
 				 * Ignore it.
 				 */
-				if ((xhci->quirks & XHCI_SPURIOUS_SUCCESS) &&
+				if ((USB_HAS_QUIRK(xhci, XHCI_SPURIOUS_SUCCESS)) &&
 						ep_ring->last_td_was_short) {
 					ep_ring->last_td_was_short = false;
 					goto cleanup;
@@ -2999,7 +2999,7 @@ static int prepare_ring(struct xhci_hcd *xhci, struct xhci_ring *ep_ring,
 		 */
 		if (!xhci_link_trb_quirk(xhci) &&
 		    !(ep_ring->type == TYPE_ISOC &&
-		      (xhci->quirks & XHCI_AMD_0x96_HOST)))
+		      (USB_HAS_QUIRK(xhci, XHCI_AMD_0x96_HOST))))
 			ep_ring->enqueue->link.control &=
 				cpu_to_le32(~TRB_CHAIN);
 		else
@@ -3215,7 +3215,7 @@ static u32 xhci_td_remainder(struct xhci_hcd *xhci, int transferred,
 	u32 maxp, total_packet_count;
 
 	/* MTK xHCI 0.96 contains some features from 1.0 */
-	if (xhci->hci_version < 0x100 && !(xhci->quirks & XHCI_MTK_HOST))
+	if (xhci->hci_version < 0x100 && !(USB_HAS_QUIRK(xhci, XHCI_MTK_HOST)))
 		return ((td_total_len - transferred) >> 10);
 
 	/* One TRB with a zero-length data packet. */
@@ -3224,7 +3224,7 @@ static u32 xhci_td_remainder(struct xhci_hcd *xhci, int transferred,
 		return 0;
 
 	/* for MTK xHCI 0.96, TD size include this TRB, but not in 1.x */
-	if ((xhci->quirks & XHCI_MTK_HOST) && (xhci->hci_version < 0x100))
+	if ((USB_HAS_QUIRK(xhci, XHCI_MTK_HOST)) && (xhci->hci_version < 0x100))
 		trb_buff_len = 0;
 
 	maxp = usb_endpoint_maxp(&urb->ep->desc);
@@ -3519,7 +3519,7 @@ int xhci_queue_ctrl_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 		field |= 0x1;
 
 	/* xHCI 1.0/1.1 6.4.1.2.1: Transfer Type field */
-	if ((xhci->hci_version >= 0x100) || (xhci->quirks & XHCI_MTK_HOST)) {
+	if ((xhci->hci_version >= 0x100) || (USB_HAS_QUIRK(xhci, XHCI_MTK_HOST))) {
 		if (urb->transfer_buffer_length > 0) {
 			if (setup->bRequestType & USB_DIR_IN)
 				field |= TRB_TX_TYPE(TRB_DATA_IN);
@@ -3845,7 +3845,7 @@ static int xhci_queue_isoc_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 				field |= TRB_IOC;
 				/* set BEI, except for the last TD */
 				if (xhci->hci_version >= 0x100 &&
-				    !(xhci->quirks & XHCI_AVOID_BEI) &&
+				    !(USB_HAS_QUIRK(xhci, XHCI_AVOID_BEI)) &&
 				    i < num_tds - 1)
 					field |= TRB_BEI;
 			}
@@ -3893,7 +3893,7 @@ static int xhci_queue_isoc_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 		xep->next_frame_id = urb->start_frame + num_tds * urb->interval;
 
 	if (xhci_to_hcd(xhci)->self.bandwidth_isoc_reqs == 0) {
-		if (xhci->quirks & XHCI_AMD_PLL_FIX)
+		if (USB_HAS_QUIRK(xhci, XHCI_AMD_PLL_FIX))
 			usb_amd_quirk_pll_disable();
 	}
 	xhci_to_hcd(xhci)->self.bandwidth_isoc_reqs++;

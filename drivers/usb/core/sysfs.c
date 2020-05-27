@@ -264,7 +264,7 @@ static ssize_t avoid_reset_quirk_show(struct device *dev,
 	struct usb_device *udev;
 
 	udev = to_usb_device(dev);
-	return sprintf(buf, "%d\n", !!(udev->quirks & USB_QUIRK_RESET));
+	return sprintf(buf, "%d\n", !!(USB_HAS_QUIRK(udev, USB_QUIRK_RESET)));
 }
 
 static ssize_t avoid_reset_quirk_store(struct device *dev,
@@ -280,9 +280,9 @@ static ssize_t avoid_reset_quirk_store(struct device *dev,
 	if (rc < 0)
 		return -EINTR;
 	if (val)
-		udev->quirks |= USB_QUIRK_RESET;
+		USB_ADD_QUIRK(udev, USB_QUIRK_RESET);
 	else
-		udev->quirks &= ~USB_QUIRK_RESET;
+		USB_DEL_QUIRK(udev, USB_QUIRK_RESET);
 	usb_unlock_device(udev);
 	return count;
 }
@@ -1260,7 +1260,7 @@ void usb_create_sysfs_intf_files(struct usb_interface *intf)
 	if (intf->sysfs_files_created || intf->unregistering)
 		return;
 
-	if (!alt->string && !(udev->quirks & USB_QUIRK_CONFIG_INTF_STRINGS))
+	if (!alt->string && !(USB_HAS_QUIRK(udev, USB_QUIRK_CONFIG_INTF_STRINGS)))
 		alt->string = usb_cache_string(udev, alt->desc.iInterface);
 	if (alt->string && device_create_file(&intf->dev, &dev_attr_interface))
 		;	/* We don't actually care if the function fails. */

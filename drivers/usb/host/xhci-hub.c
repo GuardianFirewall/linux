@@ -101,7 +101,7 @@ static int xhci_create_usb3_bos_desc(struct xhci_hcd *xhci, char *buf,
 		buf[8] |= USB_LTM_SUPPORT;
 
 	/* Set the U1 and U2 exit latencies. */
-	if ((xhci->quirks & XHCI_LPM_SUPPORT)) {
+	if ((USB_HAS_QUIRK(xhci, XHCI_LPM_SUPPORT))) {
 		temp = readl(&xhci->cap_regs->hcs_params3);
 		buf[12] = HCS_U1_LATENCY(temp);
 		put_unaligned_le16(HCS_U2_LATENCY(temp), &buf[13]);
@@ -487,7 +487,7 @@ static void xhci_disable_port(struct usb_hcd *hcd, struct xhci_hcd *xhci,
 		return;
 	}
 
-	if (xhci->quirks & XHCI_BROKEN_PORT_PED) {
+	if (USB_HAS_QUIRK(xhci, XHCI_BROKEN_PORT_PED)) {
 		xhci_dbg(xhci,
 			 "Broken Port Enabled/Disabled, ignoring port disable request.\n");
 		return;
@@ -778,7 +778,7 @@ static void xhci_hub_report_usb3_link_state(struct xhci_hcd *xhci,
 		 * in which sometimes the port enters compliance mode
 		 * caused by a delay on the host-device negotiation.
 		 */
-		if ((xhci->quirks & XHCI_COMP_MODE_QUIRK) &&
+		if ((USB_HAS_QUIRK(xhci, XHCI_COMP_MODE_QUIRK)) &&
 				(pls == USB_SS_PORT_LS_COMP_MOD))
 			pls |= USB_PORT_STAT_CONNECTION;
 	}
@@ -800,7 +800,7 @@ static void xhci_del_comp_mod_timer(struct xhci_hcd *xhci, u32 status,
 	u32 all_ports_seen_u0 = ((1 << xhci->usb3_rhub.num_ports) - 1);
 	bool port_in_u0 = ((status & PORT_PLS_MASK) == XDEV_U0);
 
-	if (!(xhci->quirks & XHCI_COMP_MODE_QUIRK))
+	if (!(USB_HAS_QUIRK(xhci, XHCI_COMP_MODE_QUIRK)))
 		return;
 
 	if ((xhci->port_status_u0 != all_ports_seen_u0) && port_in_u0) {
@@ -1671,7 +1671,7 @@ retry:
 				t2 &= ~PORT_WKDISC_E;
 			}
 
-			if ((xhci->quirks & XHCI_U2_DISABLE_WAKE) &&
+			if ((USB_HAS_QUIRK(xhci, XHCI_U2_DISABLE_WAKE)) &&
 			    (hcd->speed < HCD_USB3)) {
 				if (usb_amd_pt_check_port(hcd->self.controller,
 							  port_index))
@@ -1780,7 +1780,7 @@ int xhci_bus_resume(struct usb_hcd *hcd)
 		portsc = readl(ports[port_index]->addr);
 
 		/* warm reset CAS limited ports stuck in polling/compliance */
-		if ((xhci->quirks & XHCI_MISSING_CAS) &&
+		if ((USB_HAS_QUIRK(xhci, XHCI_MISSING_CAS)) &&
 		    (hcd->speed >= HCD_USB3) &&
 		    xhci_port_missing_cas_quirk(ports[port_index])) {
 			xhci_dbg(xhci, "reset stuck port %d\n", port_index);

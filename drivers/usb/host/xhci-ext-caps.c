@@ -93,7 +93,7 @@ int xhci_ext_cap_init(struct xhci_hcd *xhci)
 
 		switch (XHCI_EXT_CAPS_ID(val)) {
 		case XHCI_EXT_CAPS_VENDOR_INTEL:
-			if (xhci->quirks & XHCI_INTEL_USB_ROLE_SW) {
+			if (USB_HAS_QUIRK(xhci, XHCI_INTEL_USB_ROLE_SW)) {
 				ret = xhci_create_intel_xhci_sw_pdev(xhci,
 								     offset);
 				if (ret)

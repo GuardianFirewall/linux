@@ -153,7 +153,7 @@ int usb_control_msg(struct usb_device *dev, unsigned int pipe, __u8 request,
 	ret = usb_internal_control_msg(dev, pipe, dr, data, size, timeout);
 
 	/* Linger a bit, prior to the next control message. */
-	if (dev->quirks & USB_QUIRK_DELAY_CTRL_MSG)
+	if (USB_HAS_QUIRK(dev, USB_QUIRK_DELAY_CTRL_MSG))
 		msleep(200);
 
 	kfree(dr);
@@ -734,7 +734,7 @@ static int usb_string_sub(struct usb_device *dev, unsigned int langid,
 
 	/* Try to read the string descriptor by asking for the maximum
 	 * possible number of bytes */
-	if (dev->quirks & USB_QUIRK_STRING_FETCH_255)
+	if (USB_HAS_QUIRK(dev, USB_QUIRK_STRING_FETCH_255))
 		rc = -EIO;
 	else
 		rc = usb_get_string(dev, langid, index, buf, 255);
@@ -1422,7 +1422,7 @@ int usb_set_interface(struct usb_device *dev, int interface, int alternate)
 		return ret;
 	}
 
-	if (dev->quirks & USB_QUIRK_NO_SET_INTF)
+	if (USB_HAS_QUIRK(dev, USB_QUIRK_NO_SET_INTF))
 		ret = -EPIPE;
 	else
 		ret = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
@@ -2000,7 +2000,7 @@ free_interfaces:
 	usb_set_device_state(dev, USB_STATE_CONFIGURED);
 
 	if (cp->string == NULL &&
-			!(dev->quirks & USB_QUIRK_CONFIG_INTF_STRINGS))
+			!(USB_HAS_QUIRK(dev, USB_QUIRK_CONFIG_INTF_STRINGS)))
 		cp->string = usb_cache_string(dev, cp->desc.iConfiguration);
 
 	/* Now that the interfaces are installed, re-enable LPM. */

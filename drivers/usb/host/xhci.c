@@ -193,7 +193,7 @@ int xhci_reset(struct xhci_hcd *xhci)
 	 * Without this delay, the subsequent HC register access,
 	 * may result in a system hang very rarely.
 	 */
-	if (xhci->quirks & XHCI_INTEL_HOST)
+	if (USB_HAS_QUIRK(xhci, XHCI_INTEL_HOST))
 		udelay(1000);
 
 	ret = xhci_handshake(&xhci->op_regs->command,
@@ -201,7 +201,7 @@ int xhci_reset(struct xhci_hcd *xhci)
 	if (ret)
 		return ret;
 
-	if (xhci->quirks & XHCI_ASMEDIA_MODIFY_FLOWCONTROL)
+	if (USB_HAS_QUIRK(xhci, XHCI_ASMEDIA_MODIFY_FLOWCONTROL))
 		usb_asmedia_modifyflowcontrol(to_pci_dev(xhci_to_hcd(xhci)->self.controller));
 
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
@@ -243,7 +243,7 @@ static void xhci_zero_64b_regs(struct xhci_hcd *xhci)
 	 * an iommu. Doing anything when there is no iommu is definitely
 	 * unsafe...
 	 */
-	if (!(xhci->quirks & XHCI_ZERO_64B_REGS) || !device_iommu_mapped(dev))
+	if (!(USB_HAS_QUIRK(xhci, XHCI_ZERO_64B_REGS)) || !device_iommu_mapped(dev))
 		return;
 
 	xhci_info(xhci, "Zeroing 64bit base registers, expecting fault\n");
@@ -367,7 +367,7 @@ static void xhci_cleanup_msix(struct xhci_hcd *xhci)
 	struct usb_hcd *hcd = xhci_to_hcd(xhci);
 	struct pci_dev *pdev = to_pci_dev(hcd->self.controller);
 
-	if (xhci->quirks & XHCI_PLAT)
+	if (USB_HAS_QUIRK(xhci, XHCI_PLAT))
 		return;
 
 	/* return if using legacy interrupt */
@@ -407,7 +407,7 @@ static int xhci_try_enable_msi(struct usb_hcd *hcd)
 	int ret;
 
 	/* The xhci platform device has set up IRQs through usb_add_hcd. */
-	if (xhci->quirks & XHCI_PLAT)
+	if (USB_HAS_QUIRK(xhci, XHCI_PLAT))
 		return 0;
 
 	pdev = to_pci_dev(xhci_to_hcd(xhci)->self.controller);
@@ -415,7 +415,7 @@ static int xhci_try_enable_msi(struct usb_hcd *hcd)
 	 * Some Fresco Logic host controllers advertise MSI, but fail to
 	 * generate interrupts.  Don't even try to enable MSI.
 	 */
-	if (xhci->quirks & XHCI_BROKEN_MSI)
+	if (USB_HAS_QUIRK(xhci, XHCI_BROKEN_MSI))
 		goto legacy_irq;
 
 	/* unregister the legacy interrupt */
@@ -582,7 +582,7 @@ static int xhci_init(struct usb_hcd *hcd)
 	if (xhci->hci_version == 0x95 && link_quirk) {
 		xhci_dbg_trace(xhci, trace_xhci_dbg_quirks,
 				"QUIRK: Not clearing Link TRB chain bits.");
-		xhci->quirks |= XHCI_LINK_TRB_QUIRK;
+		USB_ADD_QUIRK(xhci, XHCI_LINK_TRB_QUIRK);
 	} else {
 		xhci_dbg_trace(xhci, trace_xhci_dbg_init,
 				"xHCI doesn't need link TRB QUIRK");
@@ -592,7 +592,7 @@ static int xhci_init(struct usb_hcd *hcd)
 
 	/* Initializing Compliance Mode Recovery Data If Needed */
 	if (xhci_compliance_mode_recovery_timer_quirk_check()) {
-		xhci->quirks |= XHCI_COMP_MODE_QUIRK;
+		USB_ADD_QUIRK(xhci, XHCI_COMP_MODE_QUIRK);
 		compliance_mode_recovery_timer_init(xhci);
 	}
 
@@ -611,7 +611,7 @@ static int xhci_run_finished(struct xhci_hcd *xhci)
 	xhci->shared_hcd->state = HC_STATE_RUNNING;
 	xhci->cmd_ring_state = CMD_RING_STATE_RUNNING;
 
-	if (xhci->quirks & XHCI_NEC_HOST)
+	if (USB_HAS_QUIRK(xhci, XHCI_NEC_HOST))
 		xhci_ring_cmd_db(xhci);
 
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
@@ -677,7 +677,7 @@ int xhci_run(struct usb_hcd *hcd)
 			xhci->ir_set, (unsigned int) ER_IRQ_ENABLE(temp));
 	writel(ER_IRQ_ENABLE(temp), &xhci->ir_set->irq_pending);
 
-	if (xhci->quirks & XHCI_NEC_HOST) {
+	if (USB_HAS_QUIRK(xhci, XHCI_NEC_HOST)) {
 		struct xhci_command *command;
 
 		command = xhci_alloc_command(xhci, false, GFP_KERNEL);
@@ -734,7 +734,7 @@ static void xhci_stop(struct usb_hcd *hcd)
 	xhci_cleanup_msix(xhci);
 
 	/* Deleting Compliance Mode Recovery Timer */
-	if ((xhci->quirks & XHCI_COMP_MODE_QUIRK) &&
+	if ((USB_HAS_QUIRK(xhci, XHCI_COMP_MODE_QUIRK)) &&
 			(!(xhci_all_ports_seen_u0(xhci)))) {
 		del_timer_sync(&xhci->comp_mode_recovery_timer);
 		xhci_dbg_trace(xhci, trace_xhci_dbg_quirks,
@@ -742,7 +742,7 @@ static void xhci_stop(struct usb_hcd *hcd)
 				__func__);
 	}
 
-	if (xhci->quirks & XHCI_AMD_PLL_FIX)
+	if (USB_HAS_QUIRK(xhci, XHCI_AMD_PLL_FIX))
 		usb_amd_dev_put();
 
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init,
@@ -774,13 +774,13 @@ void xhci_shutdown(struct usb_hcd *hcd)
 {
 	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
 
-	if (xhci->quirks & XHCI_SPURIOUS_REBOOT)
+	if (USB_HAS_QUIRK(xhci, XHCI_SPURIOUS_REBOOT))
 		usb_disable_xhci_ports(to_pci_dev(hcd->self.sysdev));
 
 	spin_lock_irq(&xhci->lock);
 	xhci_halt(xhci);
 	/* Workaround for spurious wakeups at shutdown with HSW */
-	if (xhci->quirks & XHCI_SPURIOUS_WAKEUP)
+	if (USB_HAS_QUIRK(xhci, XHCI_SPURIOUS_WAKEUP))
 		xhci_reset(xhci);
 	spin_unlock_irq(&xhci->lock);
 
@@ -995,7 +995,7 @@ int xhci_suspend(struct xhci_hcd *xhci, bool do_wakeup)
 	clear_bit(HCD_FLAG_POLL_RH, &xhci->shared_hcd->flags);
 	del_timer_sync(&xhci->shared_hcd->rh_timer);
 
-	if (xhci->quirks & XHCI_SUSPEND_DELAY)
+	if (USB_HAS_QUIRK(xhci, XHCI_SUSPEND_DELAY))
 		usleep_range(1000, 1500);
 
 	spin_lock_irq(&xhci->lock);
@@ -1010,7 +1010,7 @@ int xhci_suspend(struct xhci_hcd *xhci, bool do_wakeup)
 	writel(command, &xhci->op_regs->command);
 
 	/* Some chips from Fresco Logic need an extraordinary delay */
-	delay *= (xhci->quirks & XHCI_SLOW_SUSPEND) ? 10 : 1;
+	delay *= (USB_HAS_QUIRK(xhci, XHCI_SLOW_SUSPEND)) ? 10 : 1;
 
 	if (xhci_handshake(&xhci->op_regs->status,
 		      STS_HALT, STS_HALT, delay)) {
@@ -1040,7 +1040,7 @@ int xhci_suspend(struct xhci_hcd *xhci, bool do_wakeup)
 	 * Section 5.4.2) and bypass the timeout.
 	 */
 		res = readl(&xhci->op_regs->status);
-		if ((xhci->quirks & XHCI_SNPS_BROKEN_SUSPEND) &&
+		if ((USB_HAS_QUIRK(xhci, XHCI_SNPS_BROKEN_SUSPEND)) &&
 		    (((res & STS_SRE) == 0) &&
 				((res & STS_HCE) == 0))) {
 			xhci->broken_suspend = 1;
@@ -1056,7 +1056,7 @@ int xhci_suspend(struct xhci_hcd *xhci, bool do_wakeup)
 	 * Deleting Compliance Mode Recovery Timer because the xHCI Host
 	 * is about to be suspended.
 	 */
-	if ((xhci->quirks & XHCI_COMP_MODE_QUIRK) &&
+	if ((USB_HAS_QUIRK(xhci, XHCI_COMP_MODE_QUIRK)) &&
 			(!(xhci_all_ports_seen_u0(xhci)))) {
 		del_timer_sync(&xhci->comp_mode_recovery_timer);
 		xhci_dbg_trace(xhci, trace_xhci_dbg_quirks,
@@ -1101,7 +1101,7 @@ int xhci_resume(struct xhci_hcd *xhci, bool hibernated)
 	set_bit(HCD_FLAG_HW_ACCESSIBLE, &xhci->shared_hcd->flags);
 
 	spin_lock_irq(&xhci->lock);
-	if ((xhci->quirks & XHCI_RESET_ON_RESUME) || xhci->broken_suspend)
+	if ((USB_HAS_QUIRK(xhci, XHCI_RESET_ON_RESUME)) || xhci->broken_suspend)
 		hibernated = true;
 
 	if (!hibernated) {
@@ -1143,7 +1143,7 @@ int xhci_resume(struct xhci_hcd *xhci, bool hibernated)
 	/* If restore operation fails, re-initialize the HC during resume */
 	if ((temp & STS_SRE) || hibernated) {
 
-		if ((xhci->quirks & XHCI_COMP_MODE_QUIRK) &&
+		if ((USB_HAS_QUIRK(xhci, XHCI_COMP_MODE_QUIRK)) &&
 				!(xhci_all_ports_seen_u0(xhci))) {
 			del_timer_sync(&xhci->comp_mode_recovery_timer);
 			xhci_dbg_trace(xhci, trace_xhci_dbg_quirks,
@@ -1236,10 +1236,10 @@ int xhci_resume(struct xhci_hcd *xhci, bool hibernated)
 	 * to suffer the Compliance Mode issue again. It doesn't matter if
 	 * ports have entered previously to U0 before system's suspension.
 	 */
-	if ((xhci->quirks & XHCI_COMP_MODE_QUIRK) && !comp_timer_running)
+	if ((USB_HAS_QUIRK(xhci, XHCI_COMP_MODE_QUIRK)) && !comp_timer_running)
 		compliance_mode_recovery_timer_init(xhci);
 
-	if (xhci->quirks & XHCI_ASMEDIA_MODIFY_FLOWCONTROL)
+	if (USB_HAS_QUIRK(xhci, XHCI_ASMEDIA_MODIFY_FLOWCONTROL))
 		usb_asmedia_modifyflowcontrol(to_pci_dev(hcd->self.controller));
 
 	/* Re-enable port polling. */
@@ -1789,7 +1789,7 @@ static int xhci_drop_endpoint(struct usb_hcd *hcd, struct usb_device *udev,
 
 	xhci_endpoint_zero(xhci, xhci->devs[udev->slot_id], ep);
 
-	if (xhci->quirks & XHCI_MTK_HOST)
+	if (USB_HAS_QUIRK(xhci, XHCI_MTK_HOST))
 		xhci_mtk_drop_ep_quirk(hcd, udev, ep);
 
 	xhci_dbg(xhci, "drop ep 0x%x, slot id %d, new drop flags = %#x, new add flags = %#x\n",
@@ -1888,7 +1888,7 @@ static int xhci_add_endpoint(struct usb_hcd *hcd, struct usb_device *udev,
 		return -ENOMEM;
 	}
 
-	if (xhci->quirks & XHCI_MTK_HOST) {
+	if (USB_HAS_QUIRK(xhci, XHCI_MTK_HOST)) {
 		ret = xhci_mtk_add_ep_quirk(hcd, udev, ep);
 		if (ret < 0) {
 			xhci_ring_free(xhci, virt_dev->eps[ep_index].new_ring);
@@ -2770,7 +2770,7 @@ static int xhci_configure_endpoint(struct xhci_hcd *xhci,
 		return -ENOMEM;
 	}
 
-	if ((xhci->quirks & XHCI_EP_LIMIT_QUIRK) &&
+	if (USB_HAS_QUIRK(xhci, XHCI_EP_LIMIT_QUIRK) &&
 			xhci_reserve_host_resources(xhci, ctrl_ctx)) {
 		spin_unlock_irqrestore(&xhci->lock, flags);
 		xhci_warn(xhci, "Not enough host resources, "
@@ -2778,9 +2778,9 @@ static int xhci_configure_endpoint(struct xhci_hcd *xhci,
 				xhci->num_active_eps);
 		return -ENOMEM;
 	}
-	if ((xhci->quirks & XHCI_SW_BW_CHECKING) &&
+	if (USB_HAS_QUIRK(xhci, XHCI_SW_BW_CHECKING) &&
 	    xhci_reserve_bandwidth(xhci, virt_dev, command->in_ctx)) {
-		if ((xhci->quirks & XHCI_EP_LIMIT_QUIRK))
+		if (USB_HAS_QUIRK(xhci, XHCI_EP_LIMIT_QUIRK))
 			xhci_free_host_resources(xhci, ctrl_ctx);
 		spin_unlock_irqrestore(&xhci->lock, flags);
 		xhci_warn(xhci, "Not enough bandwidth\n");
@@ -2801,7 +2801,7 @@ static int xhci_configure_endpoint(struct xhci_hcd *xhci,
 				command->in_ctx->dma,
 				udev->slot_id, must_succeed);
 	if (ret < 0) {
-		if ((xhci->quirks & XHCI_EP_LIMIT_QUIRK))
+		if ((USB_HAS_QUIRK(xhci, XHCI_EP_LIMIT_QUIRK)))
 			xhci_free_host_resources(xhci, ctrl_ctx);
 		spin_unlock_irqrestore(&xhci->lock, flags);
 		xhci_dbg_trace(xhci,  trace_xhci_dbg_context_change,
@@ -2821,7 +2821,7 @@ static int xhci_configure_endpoint(struct xhci_hcd *xhci,
 		ret = xhci_evaluate_context_result(xhci, udev,
 						   &command->status);
 
-	if ((xhci->quirks & XHCI_EP_LIMIT_QUIRK)) {
+	if ((USB_HAS_QUIRK(xhci, XHCI_EP_LIMIT_QUIRK))) {
 		spin_lock_irqsave(&xhci->lock, flags);
 		/* If the command failed, remove the reserved resources.
 		 * Otherwise, clean up the estimate to include dropped eps.
@@ -3051,7 +3051,7 @@ void xhci_cleanup_stalled_ring(struct xhci_hcd *xhci, unsigned int slot_id,
 	/* HW with the reset endpoint quirk will use the saved dequeue state to
 	 * issue a configure endpoint command later.
 	 */
-	if (!(xhci->quirks & XHCI_RESET_EP_QUIRK)) {
+	if (!(USB_HAS_QUIRK(xhci, XHCI_RESET_EP_QUIRK))) {
 		xhci_dbg_trace(xhci, trace_xhci_dbg_reset_ep,
 				"Queueing new dequeue state");
 		xhci_queue_new_dequeue_state(xhci, slot_id,
@@ -3423,7 +3423,7 @@ static int xhci_alloc_streams(struct usb_hcd *hcd, struct usb_device *udev,
 			num_streams);
 
 	/* MaxPSASize value 0 (2 streams) means streams are not supported */
-	if ((xhci->quirks & XHCI_BROKEN_STREAMS) ||
+	if ((USB_HAS_QUIRK(xhci, XHCI_BROKEN_STREAMS)) ||
 			HCC_MAX_PSA(xhci->hcc_params) < 4) {
 		xhci_dbg(xhci, "xHCI controller does not support streams.\n");
 		return -ENOSYS;
@@ -3806,7 +3806,7 @@ static int xhci_discover_or_reset_device(struct usb_hcd *hcd,
 	}
 
 	/* Free up host controller endpoint resources */
-	if ((xhci->quirks & XHCI_EP_LIMIT_QUIRK)) {
+	if ((USB_HAS_QUIRK(xhci, XHCI_EP_LIMIT_QUIRK))) {
 		spin_lock_irqsave(&xhci->lock, flags);
 		/* Don't delete the default control endpoint resources */
 		xhci_free_device_endpoint_resources(xhci, virt_dev, false);
@@ -3866,7 +3866,7 @@ static void xhci_free_dev(struct usb_hcd *hcd, struct usb_device *udev)
 	 * Decrement the counter here to allow controller to runtime suspend
 	 * if no devices remain.
 	 */
-	if (xhci->quirks & XHCI_RESET_ON_RESUME)
+	if (USB_HAS_QUIRK(xhci, XHCI_RESET_ON_RESUME))
 		pm_runtime_put_noidle(hcd->self.controller);
 #endif
 
@@ -3992,7 +3992,7 @@ int xhci_alloc_dev(struct usb_hcd *hcd, struct usb_device *udev)
 
 	xhci_free_command(xhci, command);
 
-	if ((xhci->quirks & XHCI_EP_LIMIT_QUIRK)) {
+	if ((USB_HAS_QUIRK(xhci, XHCI_EP_LIMIT_QUIRK))) {
 		spin_lock_irqsave(&xhci->lock, flags);
 		ret = xhci_reserve_host_control_ep_resources(xhci);
 		if (ret) {
@@ -4025,7 +4025,7 @@ int xhci_alloc_dev(struct usb_hcd *hcd, struct usb_device *udev)
 	 * If resetting upon resume, we can't put the controller into runtime
 	 * suspend if there is a device attached.
 	 */
-	if (xhci->quirks & XHCI_RESET_ON_RESUME)
+	if (USB_HAS_QUIRK(xhci, XHCI_RESET_ON_RESUME))
 		pm_runtime_get_noresume(hcd->self.controller);
 #endif
 
@@ -4412,7 +4412,7 @@ static int xhci_set_usb2_hardware_lpm(struct usb_hcd *hcd,
 	xhci_dbg(xhci, "%s port %d USB2 hardware LPM\n",
 			enable ? "enable" : "disable", port_num + 1);
 
-	if (enable && !(xhci->quirks & XHCI_HW_LPM_DISABLE)) {
+	if (enable && !(USB_HAS_QUIRK(xhci, XHCI_HW_LPM_DISABLE))) {
 		/* Host supports BESL timeout instead of HIRD */
 		if (udev->usb2_hw_lpm_besl_capable) {
 			/* if device doesn't have a preferred BESL value use a
@@ -4640,7 +4640,7 @@ static u16 xhci_calculate_u1_timeout(struct xhci_hcd *xhci,
 		}
 	}
 
-	if (xhci->quirks & XHCI_INTEL_HOST)
+	if (USB_HAS_QUIRK(xhci, XHCI_INTEL_HOST))
 		timeout_ns = xhci_calculate_intel_u1_timeout(udev, desc);
 	else
 		timeout_ns = udev->u1_params.sel;
@@ -4704,7 +4704,7 @@ static u16 xhci_calculate_u2_timeout(struct xhci_hcd *xhci,
 		}
 	}
 
-	if (xhci->quirks & XHCI_INTEL_HOST)
+	if (USB_HAS_QUIRK(xhci, XHCI_INTEL_HOST))
 		timeout_ns = xhci_calculate_intel_u2_timeout(udev, desc);
 	else
 		timeout_ns = udev->u2_params.sel;
@@ -4805,7 +4805,7 @@ static int xhci_check_tier_policy(struct xhci_hcd *xhci,
 		struct usb_device *udev,
 		enum usb3_link_state state)
 {
-	if (xhci->quirks & XHCI_INTEL_HOST)
+	if (USB_HAS_QUIRK(xhci, XHCI_INTEL_HOST))
 		return xhci_check_intel_tier_policy(udev, state);
 	else
 		return 0;
@@ -4942,7 +4942,7 @@ static int xhci_enable_usb3_lpm_timeout(struct usb_hcd *hcd,
 	 * enable hub-initiated timeouts unless the vendor has provided
 	 * information about their timeout algorithm.
 	 */
-	if (!xhci || !(xhci->quirks & XHCI_LPM_SUPPORT) ||
+	if (!xhci || !(USB_HAS_QUIRK(xhci, XHCI_LPM_SUPPORT)) ||
 			!xhci->devs[udev->slot_id])
 		return USB3_LPM_DISABLED;
 
@@ -4967,7 +4967,7 @@ static int xhci_disable_usb3_lpm_timeout(struct usb_hcd *hcd,
 	u16 mel;
 
 	xhci = hcd_to_xhci(hcd);
-	if (!xhci || !(xhci->quirks & XHCI_LPM_SUPPORT) ||
+	if (!xhci || !(USB_HAS_QUIRK(xhci, XHCI_LPM_SUPPORT)) ||
 			!xhci->devs[udev->slot_id])
 		return 0;
 
@@ -5203,7 +5203,7 @@ int xhci_gen_setup(struct usb_hcd *hcd, xhci_get_quirks_t get_quirks)
 	if (xhci->hci_version > 0x100)
 		xhci->hcc_params2 = readl(&xhci->cap_regs->hcc_params2);
 
-	xhci->quirks |= quirks;
+	USB_ADD_QUIRK(xhci, quirks);
 
 	get_quirks(dev, xhci);
 
@@ -5212,7 +5212,7 @@ int xhci_gen_setup(struct usb_hcd *hcd, xhci_get_quirks_t get_quirks)
 	 * spurious event.
 	 */
 	if (xhci->hci_version > 0x96)
-		xhci->quirks |= XHCI_SPURIOUS_SUCCESS;
+		USB_ADD_QUIRK(xhci, XHCI_SPURIOUS_SUCCESS);
 
 	/* Make sure the HC is halted. */
 	retval = xhci_halt(xhci);
@@ -5235,7 +5235,7 @@ int xhci_gen_setup(struct usb_hcd *hcd, xhci_get_quirks_t get_quirks)
 	 * bit of xhci->hcc_params to call dma_set_coherent_mask(dev,
 	 * DMA_BIT_MASK(32)) in this xhci_gen_setup().
 	 */
-	if (xhci->quirks & XHCI_NO_64BIT_SUPPORT)
+	if (USB_HAS_QUIRK(xhci, XHCI_NO_64BIT_SUPPORT))
 		xhci->hcc_params &= ~BIT(0);
 
 	/* Set dma_mask and coherent_dma_mask to 64-bits,

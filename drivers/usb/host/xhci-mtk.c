@@ -386,15 +386,15 @@ static void xhci_mtk_quirks(struct device *dev, struct xhci_hcd *xhci)
 	 * here that the generic code does not try to make a pci_dev from our
 	 * dev struct in order to setup MSI
 	 */
-	xhci->quirks |= XHCI_PLAT;
-	xhci->quirks |= XHCI_MTK_HOST;
+	USB_ADD_QUIRK(xhci, XHCI_PLAT);
+	USB_ADD_QUIRK(xhci, XHCI_MTK_HOST);
 	/*
 	 * MTK host controller gives a spurious successful event after a
 	 * short transfer. Ignore it.
 	 */
-	xhci->quirks |= XHCI_SPURIOUS_SUCCESS;
+	USB_ADD_QUIRK(xhci, XHCI_SPURIOUS_SUCCESS);
 	if (mtk->lpm_support)
-		xhci->quirks |= XHCI_LPM_SUPPORT;
+		USB_ADD_QUIRK(xhci, XHCI_LPM_SUPPORT);
 }
 
 /* called during probe() after chip reset completes */

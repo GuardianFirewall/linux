@@ -299,7 +299,7 @@ static int usb_parse_endpoint(struct device *ddev, int cfgno,
 	}
 
 	/* Ignore blacklisted endpoints */
-	if (udev->quirks & USB_QUIRK_ENDPOINT_BLACKLIST) {
+	if (USB_HAS_QUIRK(udev, USB_QUIRK_ENDPOINT_BLACKLIST)) {
 		if (usb_endpoint_is_blacklisted(udev, ifp, d)) {
 			dev_warn(ddev, "config %d interface %d altsetting %d has a blacklisted endpoint with address 0x%X, skipping\n",
 					cfgno, inum, asnum,
@@ -343,7 +343,7 @@ static int usb_parse_endpoint(struct device *ddev, int cfgno,
 			/*
 			 * This quirk fixes bIntervals reported in ms.
 			 */
-			if (udev->quirks & USB_QUIRK_LINEAR_FRAME_INTR_BINTERVAL) {
+			if (USB_HAS_QUIRK(udev, USB_QUIRK_LINEAR_FRAME_INTR_BINTERVAL)) {
 				n = clamp(fls(d->bInterval) + 3, i, j);
 				i = j = n;
 			}
@@ -351,7 +351,7 @@ static int usb_parse_endpoint(struct device *ddev, int cfgno,
 			 * This quirk fixes bIntervals reported in
 			 * linear microframes.
 			 */
-			if (udev->quirks & USB_QUIRK_LINEAR_UFRAME_INTR_BINTERVAL) {
+			if (USB_HAS_QUIRK(udev, USB_QUIRK_LINEAR_UFRAME_INTR_BINTERVAL)) {
 				n = clamp(fls(d->bInterval), i, j);
 				i = j = n;
 			}
@@ -678,7 +678,7 @@ static int usb_parse_configuration(struct usb_device *dev, int cfgidx,
 
 			inum = d->bInterfaceNumber;
 
-			if ((dev->quirks & USB_QUIRK_HONOR_BNUMINTERFACES) &&
+			if ((USB_HAS_QUIRK(dev, USB_QUIRK_HONOR_BNUMINTERFACES)) &&
 			    n >= nintf_orig) {
 				dev_warn(ddev, "config %d has more interface "
 				    "descriptors, than it declares in "
@@ -922,7 +922,7 @@ int usb_get_configuration(struct usb_device *dev)
 			goto err;
 		}
 
-		if (dev->quirks & USB_QUIRK_DELAY_INIT)
+		if (USB_HAS_QUIRK(dev, USB_QUIRK_DELAY_INIT))
 			msleep(200);
 
 		result = usb_get_descriptor(dev, USB_DT_CONFIG, cfgno,

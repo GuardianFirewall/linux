@@ -584,7 +584,7 @@ static long usblp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		case IOCNR_HP_SET_CHANNEL:
 			if (_IOC_DIR(cmd) != _IOC_WRITE ||
 			    le16_to_cpu(usblp->dev->descriptor.idVendor) != 0x03F0 ||
-			    usblp->quirks & USBLP_QUIRK_BIDIR) {
+			    USB_HAS_QUIRK(usblp, USBLP_QUIRK_BIDIR)) {
 				retval = -EINVAL;
 				goto done;
 			}
@@ -1247,7 +1247,7 @@ static int usblp_select_alts(struct usblp *usblp)
 
 		if (ifd->desc.bInterfaceClass != USB_CLASS_PRINTER ||
 		    ifd->desc.bInterfaceSubClass != 1)
-			if (!(usblp->quirks & USBLP_QUIRK_BAD_CLASS))
+			if (!(USB_HAS_QUIRK(usblp, USBLP_QUIRK_BAD_CLASS)))
 				continue;
 
 		if (ifd->desc.bInterfaceProtocol < USBLP_FIRST_PROTOCOL ||
@@ -1268,7 +1268,7 @@ static int usblp_select_alts(struct usblp *usblp)
 			continue;
 
 		/* Turn off reads for buggy bidirectional printers. */
-		if (usblp->quirks & USBLP_QUIRK_BIDIR) {
+		if (USB_HAS_QUIRK(usblp, USBLP_QUIRK_BIDIR)) {
 			printk(KERN_INFO "usblp%d: Disabling reads from "
 			    "problematic bidirectional printer\n",
 			    usblp->minor);

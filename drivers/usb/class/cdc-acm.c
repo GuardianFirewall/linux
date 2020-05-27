@@ -135,7 +135,7 @@ static int acm_ctrl_msg(struct acm *acm, int request, int value,
  */
 static inline int acm_set_control(struct acm *acm, int control)
 {
-	if (acm->quirks & QUIRK_CONTROL_LINE_STATE)
+	if (USB_HAS_QUIRK(acm, QUIRK_CONTROL_LINE_STATE))
 		return -EOPNOTSUPP;
 
 	return acm_ctrl_msg(acm, USB_CDC_REQ_SET_CONTROL_LINE_STATE,
@@ -614,7 +614,7 @@ static int acm_tty_install(struct tty_driver *driver, struct tty_struct *tty)
 	 * Suppress initial echoing for some devices which might send data
 	 * immediately after acm driver has been installed.
 	 */
-	if (acm->quirks & DISABLE_ECHO)
+	if (USB_HAS_QUIRK(acm, DISABLE_ECHO))
 		tty->termios.c_lflag &= ~ECHO;
 
 	tty->driver_data = acm;

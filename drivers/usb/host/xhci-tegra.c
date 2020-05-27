@@ -2063,9 +2063,9 @@ static void tegra_xhci_quirks(struct device *dev, struct xhci_hcd *xhci)
 {
 	struct tegra_xusb *tegra = dev_get_drvdata(dev);
 
-	xhci->quirks |= XHCI_PLAT;
+	USB_ADD_QUIRK(xhci, XHCI_PLAT);
 	if (tegra && tegra->soc->lpm_support)
-		xhci->quirks |= XHCI_LPM_SUPPORT;
+		USB_ADD_QUIRK(xhci, XHCI_LPM_SUPPORT);
 }
 
 static int tegra_xhci_setup(struct usb_hcd *hcd)

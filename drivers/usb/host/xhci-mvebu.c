@@ -79,7 +79,7 @@ int xhci_mvebu_a3700_init_quirk(struct usb_hcd *hcd)
 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
 
 	/* Without reset on resume, the HC won't work at all */
-	xhci->quirks |= XHCI_RESET_ON_RESUME;
+	USB_ADD_QUIRK(xhci, XHCI_RESET_ON_RESUME);
 
 	return 0;
 }

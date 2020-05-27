@@ -140,7 +140,7 @@ struct usb_hub *usb_hub_to_struct_hub(struct usb_device *hdev)
 int usb_device_supports_lpm(struct usb_device *udev)
 {
 	/* Some devices have trouble with LPM */
-	if (udev->quirks & USB_QUIRK_NO_LPM)
+	if (USB_HAS_QUIRK(udev, USB_QUIRK_NO_LPM))
 		return 0;
 
 	/* USB 2.1 (and greater) devices indicate LPM support through
@@ -2052,8 +2052,7 @@ void usb_set_device_state(struct usb_device *udev,
 					|| new_state == USB_STATE_SUSPENDED)
 				;	/* No change to wakeup settings */
 			else if (new_state == USB_STATE_CONFIGURED)
-				wakeup = (udev->quirks &
-					USB_QUIRK_IGNORE_REMOTE_WAKEUP) ? 0 :
+				wakeup = (USB_HAS_QUIRK(udev, USB_QUIRK_IGNORE_REMOTE_WAKEUP)) ? 0 :
 					udev->actconfig->desc.bmAttributes &
 					USB_CONFIG_ATT_WAKEUP;
 			else
@@ -2728,7 +2727,7 @@ static bool use_new_scheme(struct usb_device *udev, int retry,
 			   struct usb_port *port_dev)
 {
 	int old_scheme_first_port =
-		port_dev->quirks & USB_PORT_QUIRK_OLD_SCHEME;
+		USB_HAS_QUIRK(port_dev, USB_PORT_QUIRK_OLD_SCHEME);
 
 	if (udev->speed >= USB_SPEED_SUPER)
 		return false;
@@ -2954,14 +2953,14 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
 
 done:
 	if (status == 0) {
-		if (port_dev->quirks & USB_PORT_QUIRK_FAST_ENUM)
+		if (USB_HAS_QUIRK(port_dev, USB_PORT_QUIRK_FAST_ENUM))
 			usleep_range(10000, 12000);
 		else {
 			/* TRSTRCY = 10 ms; plus some extra */
 			reset_recovery_time = 10 + 40;
 
 			/* Hub needs extra delay after resetting its port. */
-			if (hub->hdev->quirks & USB_QUIRK_HUB_SLOW_RESET)
+			if (USB_HAS_QUIRK(hub->hdev, USB_QUIRK_HUB_SLOW_RESET))
 				reset_recovery_time += 100;
 
 			msleep(reset_recovery_time);
@@ -3398,7 +3397,7 @@ static int finish_port_resume(struct usb_device *udev)
 		 * the device will be rediscovered.
 		 */
  retry_reset_resume:
-		if (udev->quirks & USB_QUIRK_RESET)
+		if (USB_HAS_QUIRK(udev, USB_QUIRK_RESET))
 			status = -ENODEV;
 		else
 			status = usb_reset_and_verify_device(udev);
@@ -4886,7 +4885,7 @@ check_highspeed(struct usb_hub *hub, struct usb_device *udev, int port1)
 	struct usb_qualifier_descriptor	*qual;
 	int				status;
 
-	if (udev->quirks & USB_QUIRK_DEVICE_QUALIFIER)
+	if (USB_HAS_QUIRK(udev, USB_QUIRK_DEVICE_QUALIFIER))
 		return;
 
 	qual = kmalloc(sizeof *qual, GFP_KERNEL);
@@ -5142,7 +5141,7 @@ static void hub_port_connect(struct usb_hub *hub, int port1, u16 portstatus,
 		if (status < 0)
 			goto loop;
 
-		if (udev->quirks & USB_QUIRK_DELAY_INIT)
+		if (USB_HAS_QUIRK(udev, USB_QUIRK_DELAY_INIT))
 			msleep(2000);
 
 		/* consecutive bus-powered hubs aren't reliable; they can

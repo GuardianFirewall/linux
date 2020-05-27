@@ -9,16 +9,6 @@
 struct usb_hub_descriptor;
 struct usb_dev_state;
 
-#ifdef CONFIG_USB_NO_QUIRKS
-#define USB_HAS_QUIRK(device, name) (false)
-#define USB_ADD_QUIRK(device, name)
-#define USB_DEL_QUIRK(device, name)
-#else
-#define USB_HAS_QUIRK(device, name) (device->quirks & name)
-#define USB_ADD_QUIRK(device, name) (device->quirks |= name)
-#define USB_DEL_QUIRK(device, name) (device->quirks &= ~name)
-#endif
-
 /* Functions local to drivers/usb/core/ */
 
 extern int usb_create_sysfs_dev_files(struct usb_device *dev);

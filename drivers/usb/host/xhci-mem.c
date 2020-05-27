@@ -116,7 +116,7 @@ static void xhci_link_segments(struct xhci_hcd *xhci, struct xhci_segment *prev,
 		/* Set chain bit for isoc rings on AMD 0.96 host */
 		if (xhci_link_trb_quirk(xhci) ||
 				(type == TYPE_ISOC &&
-				 (xhci->quirks & XHCI_AMD_0x96_HOST)))
+				 (USB_HAS_QUIRK(xhci, XHCI_AMD_0x96_HOST))))
 			val |= TRB_CHAIN;
 		prev->trbs[TRBS_PER_SEGMENT-1].link.control = cpu_to_le32(val);
 	}
@@ -1458,7 +1458,7 @@ int xhci_endpoint_init(struct xhci_hcd *xhci,
 	/* Periodic endpoint bInterval limit quirk */
 	if (usb_endpoint_xfer_int(&ep->desc) ||
 	    usb_endpoint_xfer_isoc(&ep->desc)) {
-		if ((xhci->quirks & XHCI_LIMIT_ENDPOINT_INTERVAL_7) &&
+		if ((USB_HAS_QUIRK(xhci, XHCI_LIMIT_ENDPOINT_INTERVAL_7)) &&
 		    udev->speed >= USB_SPEED_HIGH &&
 		    interval >= 7) {
 			interval = 6;
@@ -1619,7 +1619,7 @@ void xhci_endpoint_copy(struct xhci_hcd *xhci,
 	in_ep_ctx->ep_info2 = out_ep_ctx->ep_info2;
 	in_ep_ctx->deq = out_ep_ctx->deq;
 	in_ep_ctx->tx_info = out_ep_ctx->tx_info;
-	if (xhci->quirks & XHCI_MTK_HOST) {
+	if (USB_HAS_QUIRK(xhci, XHCI_MTK_HOST)) {
 		in_ep_ctx->reserved[0] = out_ep_ctx->reserved[0];
 		in_ep_ctx->reserved[1] = out_ep_ctx->reserved[1];
 	}

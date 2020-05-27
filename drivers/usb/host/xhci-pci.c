@@ -95,78 +95,78 @@ static void xhci_pci_quirks(struct device *dev, struct xhci_hcd *xhci)
 			 pdev->device == PCI_DEVICE_ID_FRESCO_LOGIC_FL1400)) {
 		if (pdev->device == PCI_DEVICE_ID_FRESCO_LOGIC_PDK &&
 				pdev->revision == 0x0) {
-			xhci->quirks |= XHCI_RESET_EP_QUIRK;
+			USB_ADD_QUIRK(xhci, XHCI_RESET_EP_QUIRK);
 			xhci_dbg_trace(xhci, trace_xhci_dbg_quirks,
 				"QUIRK: Fresco Logic xHC needs configure"
 				" endpoint cmd after reset endpoint");
 		}
 		if (pdev->device == PCI_DEVICE_ID_FRESCO_LOGIC_PDK &&
 				pdev->revision == 0x4) {
-			xhci->quirks |= XHCI_SLOW_SUSPEND;
+			USB_ADD_QUIRK(xhci, XHCI_SLOW_SUSPEND);
 			xhci_dbg_trace(xhci, trace_xhci_dbg_quirks,
 				"QUIRK: Fresco Logic xHC revision %u"
 				"must be suspended extra slowly",
 				pdev->revision);
 		}
 		if (pdev->device == PCI_DEVICE_ID_FRESCO_LOGIC_PDK)
-			xhci->quirks |= XHCI_BROKEN_STREAMS;
+			USB_ADD_QUIRK(xhci, XHCI_BROKEN_STREAMS);
 		/* Fresco Logic confirms: all revisions of this chip do not
 		 * support MSI, even though some of them claim to in their PCI
 		 * capabilities.
 		 */
-		xhci->quirks |= XHCI_BROKEN_MSI;
+		USB_ADD_QUIRK(xhci, XHCI_BROKEN_MSI);
 		xhci_dbg_trace(xhci, trace_xhci_dbg_quirks,
 				"QUIRK: Fresco Logic revision %u "
 				"has broken MSI implementation",
 				pdev->revision);
-		xhci->quirks |= XHCI_TRUST_TX_LENGTH;
+		USB_ADD_QUIRK(xhci, XHCI_TRUST_TX_LENGTH);
 	}
 
 	if (pdev->vendor == PCI_VENDOR_ID_FRESCO_LOGIC &&
 			pdev->device == PCI_DEVICE_ID_FRESCO_LOGIC_FL1009)
-		xhci->quirks |= XHCI_BROKEN_STREAMS;
+		USB_ADD_QUIRK(xhci, XHCI_BROKEN_STREAMS);
 
 	if (pdev->vendor == PCI_VENDOR_ID_NEC)
-		xhci->quirks |= XHCI_NEC_HOST;
+		USB_ADD_QUIRK(xhci, XHCI_NEC_HOST);
 
 	if (pdev->vendor == PCI_VENDOR_ID_AMD && xhci->hci_version == 0x96)
-		xhci->quirks |= XHCI_AMD_0x96_HOST;
+		USB_ADD_QUIRK(xhci, XHCI_AMD_0x96_HOST);
 
 	/* AMD PLL quirk */
 	if (pdev->vendor == PCI_VENDOR_ID_AMD && usb_amd_quirk_pll_check())
-		xhci->quirks |= XHCI_AMD_PLL_FIX;
+		USB_ADD_QUIRK(xhci, XHCI_AMD_PLL_FIX);
 
 	if (pdev->vendor == PCI_VENDOR_ID_AMD &&
 		(pdev->device == 0x145c ||
 		 pdev->device == 0x15e0 ||
 		 pdev->device == 0x15e1 ||
 		 pdev->device == 0x43bb))
-		xhci->quirks |= XHCI_SUSPEND_DELAY;
+		USB_ADD_QUIRK(xhci, XHCI_SUSPEND_DELAY);
 
 	if (pdev->vendor == PCI_VENDOR_ID_AMD &&
 	    (pdev->device == 0x15e0 || pdev->device == 0x15e1))
-		xhci->quirks |= XHCI_SNPS_BROKEN_SUSPEND;
+		USB_ADD_QUIRK(xhci, XHCI_SNPS_BROKEN_SUSPEND);
 
 	if (pdev->vendor == PCI_VENDOR_ID_AMD)
-		xhci->quirks |= XHCI_TRUST_TX_LENGTH;
+		USB_ADD_QUIRK(xhci, XHCI_TRUST_TX_LENGTH);
 
 	if ((pdev->vendor == PCI_VENDOR_ID_AMD) &&
 		((pdev->device == PCI_DEVICE_ID_AMD_PROMONTORYA_4) ||
 		(pdev->device == PCI_DEVICE_ID_AMD_PROMONTORYA_3) ||
 		(pdev->device == PCI_DEVICE_ID_AMD_PROMONTORYA_2) ||
 		(pdev->device == PCI_DEVICE_ID_AMD_PROMONTORYA_1)))
-		xhci->quirks |= XHCI_U2_DISABLE_WAKE;
+		USB_ADD_QUIRK(xhci, XHCI_U2_DISABLE_WAKE);
 
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL) {
-		xhci->quirks |= XHCI_LPM_SUPPORT;
-		xhci->quirks |= XHCI_INTEL_HOST;
-		xhci->quirks |= XHCI_AVOID_BEI;
+		USB_ADD_QUIRK(xhci, XHCI_LPM_SUPPORT);
+		USB_ADD_QUIRK(xhci, XHCI_INTEL_HOST);
+		USB_ADD_QUIRK(xhci, XHCI_AVOID_BEI);
 	}
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL &&
 			pdev->device == PCI_DEVICE_ID_INTEL_PANTHERPOINT_XHCI) {
-		xhci->quirks |= XHCI_EP_LIMIT_QUIRK;
+		USB_ADD_QUIRK(xhci, XHCI_EP_LIMIT_QUIRK);
 		xhci->limit_active_eps = 64;
-		xhci->quirks |= XHCI_SW_BW_CHECKING;
+		USB_ADD_QUIRK(xhci, XHCI_SW_BW_CHECKING);
 		/*
 		 * PPT desktop boards DH77EB and DH77DF will power back on after
 		 * a few seconds of being shutdown.  The fix for this is to
@@ -175,13 +175,13 @@ static void xhci_pci_quirks(struct device *dev, struct xhci_hcd *xhci)
 		 * vendor will change the board name), so we have to key off all
 		 * PPT chipsets.
 		 */
-		xhci->quirks |= XHCI_SPURIOUS_REBOOT;
+		USB_ADD_QUIRK(xhci, XHCI_SPURIOUS_REBOOT);
 	}
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL &&
 		(pdev->device == PCI_DEVICE_ID_INTEL_LYNXPOINT_LP_XHCI ||
 		 pdev->device == PCI_DEVICE_ID_INTEL_WILDCATPOINT_LP_XHCI)) {
-		xhci->quirks |= XHCI_SPURIOUS_REBOOT;
-		xhci->quirks |= XHCI_SPURIOUS_WAKEUP;
+		USB_ADD_QUIRK(xhci, XHCI_SPURIOUS_REBOOT);
+		USB_ADD_QUIRK(xhci, XHCI_SPURIOUS_WAKEUP);
 	}
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL &&
 		(pdev->device == PCI_DEVICE_ID_INTEL_SUNRISEPOINT_LP_XHCI ||
@@ -192,23 +192,23 @@ static void xhci_pci_quirks(struct device *dev, struct xhci_hcd *xhci)
 		 pdev->device == PCI_DEVICE_ID_INTEL_APL_XHCI ||
 		 pdev->device == PCI_DEVICE_ID_INTEL_DNV_XHCI ||
 		 pdev->device == PCI_DEVICE_ID_INTEL_CML_XHCI)) {
-		xhci->quirks |= XHCI_PME_STUCK_QUIRK;
+		USB_ADD_QUIRK(xhci, XHCI_PME_STUCK_QUIRK);
 	}
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL &&
 	    pdev->device == PCI_DEVICE_ID_INTEL_CHERRYVIEW_XHCI)
-		xhci->quirks |= XHCI_SSIC_PORT_UNUSED;
+		USB_ADD_QUIRK(xhci, XHCI_SSIC_PORT_UNUSED);
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL &&
 	    (pdev->device == PCI_DEVICE_ID_INTEL_CHERRYVIEW_XHCI ||
 	     pdev->device == PCI_DEVICE_ID_INTEL_SUNRISEPOINT_LP_XHCI ||
 	     pdev->device == PCI_DEVICE_ID_INTEL_APL_XHCI))
-		xhci->quirks |= XHCI_INTEL_USB_ROLE_SW;
+		USB_ADD_QUIRK(xhci, XHCI_INTEL_USB_ROLE_SW);
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL &&
 	    (pdev->device == PCI_DEVICE_ID_INTEL_CHERRYVIEW_XHCI ||
 	     pdev->device == PCI_DEVICE_ID_INTEL_SUNRISEPOINT_LP_XHCI ||
 	     pdev->device == PCI_DEVICE_ID_INTEL_SUNRISEPOINT_H_XHCI ||
 	     pdev->device == PCI_DEVICE_ID_INTEL_APL_XHCI ||
 	     pdev->device == PCI_DEVICE_ID_INTEL_DNV_XHCI))
-		xhci->quirks |= XHCI_MISSING_CAS;
+		USB_ADD_QUIRK(xhci, XHCI_MISSING_CAS);
 
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL &&
 	    (pdev->device == PCI_DEVICE_ID_INTEL_ALPINE_RIDGE_2C_XHCI ||
@@ -220,55 +220,55 @@ static void xhci_pci_quirks(struct device *dev, struct xhci_hcd *xhci)
 	     pdev->device == PCI_DEVICE_ID_INTEL_TITAN_RIDGE_DD_XHCI ||
 	     pdev->device == PCI_DEVICE_ID_INTEL_ICE_LAKE_XHCI ||
 	     pdev->device == PCI_DEVICE_ID_INTEL_TIGER_LAKE_XHCI))
-		xhci->quirks |= XHCI_DEFAULT_PM_RUNTIME_ALLOW;
+		USB_ADD_QUIRK(xhci, XHCI_DEFAULT_PM_RUNTIME_ALLOW);
 
 	if (pdev->vendor == PCI_VENDOR_ID_ETRON &&
 			pdev->device == PCI_DEVICE_ID_EJ168) {
-		xhci->quirks |= XHCI_RESET_ON_RESUME;
-		xhci->quirks |= XHCI_TRUST_TX_LENGTH;
-		xhci->quirks |= XHCI_BROKEN_STREAMS;
+		USB_ADD_QUIRK(xhci, XHCI_RESET_ON_RESUME);
+		USB_ADD_QUIRK(xhci, XHCI_TRUST_TX_LENGTH);
+		USB_ADD_QUIRK(xhci, XHCI_BROKEN_STREAMS);
 	}
 	if (pdev->vendor == PCI_VENDOR_ID_RENESAS &&
 	    pdev->device == 0x0014) {
-		xhci->quirks |= XHCI_TRUST_TX_LENGTH;
-		xhci->quirks |= XHCI_ZERO_64B_REGS;
+		USB_ADD_QUIRK(xhci, XHCI_TRUST_TX_LENGTH);
+		USB_ADD_QUIRK(xhci, XHCI_ZERO_64B_REGS);
 	}
 	if (pdev->vendor == PCI_VENDOR_ID_RENESAS &&
 	    pdev->device == 0x0015) {
-		xhci->quirks |= XHCI_RESET_ON_RESUME;
-		xhci->quirks |= XHCI_ZERO_64B_REGS;
+		USB_ADD_QUIRK(xhci, XHCI_RESET_ON_RESUME);
+		USB_ADD_QUIRK(xhci, XHCI_ZERO_64B_REGS);
 	}
 	if (pdev->vendor == PCI_VENDOR_ID_VIA)
-		xhci->quirks |= XHCI_RESET_ON_RESUME;
+		USB_ADD_QUIRK(xhci, XHCI_RESET_ON_RESUME);
 
 	/* See https://bugzilla.kernel.org/show_bug.cgi?id=79511 */
 	if (pdev->vendor == PCI_VENDOR_ID_VIA &&
 			pdev->device == 0x3432)
-		xhci->quirks |= XHCI_BROKEN_STREAMS;
+		USB_ADD_QUIRK(xhci, XHCI_BROKEN_STREAMS);
 
 	if (pdev->vendor == PCI_VENDOR_ID_VIA && pdev->device == 0x3483)
-		xhci->quirks |= XHCI_LPM_SUPPORT;
+		USB_ADD_QUIRK(xhci, XHCI_LPM_SUPPORT);
 
 	if (pdev->vendor == PCI_VENDOR_ID_ASMEDIA &&
 			pdev->device == 0x1042)
-		xhci->quirks |= XHCI_BROKEN_STREAMS;
+		USB_ADD_QUIRK(xhci, XHCI_BROKEN_STREAMS);
 	if (pdev->vendor == PCI_VENDOR_ID_ASMEDIA &&
 			pdev->device == 0x1142)
-		xhci->quirks |= XHCI_TRUST_TX_LENGTH;
+		USB_ADD_QUIRK(xhci, XHCI_TRUST_TX_LENGTH);
 
 	if (pdev->vendor == PCI_VENDOR_ID_ASMEDIA &&
 		pdev->device == PCI_DEVICE_ID_ASMEDIA_1042A_XHCI)
-		xhci->quirks |= XHCI_ASMEDIA_MODIFY_FLOWCONTROL;
+		USB_ADD_QUIRK(xhci, XHCI_ASMEDIA_MODIFY_FLOWCONTROL);
 
 	if (pdev->vendor == PCI_VENDOR_ID_TI && pdev->device == 0x8241)
-		xhci->quirks |= XHCI_LIMIT_ENDPOINT_INTERVAL_7;
+		USB_ADD_QUIRK(xhci, XHCI_LIMIT_ENDPOINT_INTERVAL_7);
 
 	if ((pdev->vendor == PCI_VENDOR_ID_BROADCOM ||
 	     pdev->vendor == PCI_VENDOR_ID_CAVIUM) &&
 	     pdev->device == 0x9026)
-		xhci->quirks |= XHCI_RESET_PLL_ON_DISCONNECT;
+		USB_ADD_QUIRK(xhci, XHCI_RESET_PLL_ON_DISCONNECT);
 
-	if (xhci->quirks & XHCI_RESET_ON_RESUME)
+	if (USB_HAS_QUIRK(xhci, XHCI_RESET_ON_RESUME))
 		xhci_dbg_trace(xhci, trace_xhci_dbg_quirks,
 				"QUIRK: Resetting on resume");
 }
@@ -310,7 +310,7 @@ static int xhci_pci_setup(struct usb_hcd *hcd)
 	if (!usb_hcd_is_primary_hcd(hcd))
 		return 0;
 
-	if (xhci->quirks & XHCI_PME_STUCK_QUIRK)
+	if (USB_HAS_QUIRK(xhci, XHCI_PME_STUCK_QUIRK))
 		xhci_pme_acpi_rtd3_enable(pdev);
 
 	xhci_dbg(xhci, "Got SBRN %u\n", (unsigned int) xhci->sbrn);
@@ -366,14 +366,14 @@ static int xhci_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 		goto put_usb3_hcd;
 	/* Roothub already marked as USB 3.0 speed */
 
-	if (!(xhci->quirks & XHCI_BROKEN_STREAMS) &&
+	if (!(USB_HAS_QUIRK(xhci, XHCI_BROKEN_STREAMS)) &&
 			HCC_MAX_PSA(xhci->hcc_params) >= 4)
 		xhci->shared_hcd->can_do_streams = 1;
 
 	/* USB-2 and USB-3 roothubs initialized, allow runtime pm suspend */
 	pm_runtime_put_noidle(&dev->dev);
 
-	if (xhci->quirks & XHCI_DEFAULT_PM_RUNTIME_ALLOW)
+	if (USB_HAS_QUIRK(xhci, XHCI_DEFAULT_PM_RUNTIME_ALLOW))
 		pm_runtime_allow(&dev->dev);
 
 	return 0;
@@ -394,7 +394,7 @@ static void xhci_pci_remove(struct pci_dev *dev)
 	xhci = hcd_to_xhci(pci_get_drvdata(dev));
 	xhci->xhc_state |= XHCI_STATE_REMOVING;
 
-	if (xhci->quirks & XHCI_DEFAULT_PM_RUNTIME_ALLOW)
+	if (USB_HAS_QUIRK(xhci, XHCI_DEFAULT_PM_RUNTIME_ALLOW))
 		pm_runtime_forbid(&dev->dev);
 
 	if (xhci->shared_hcd) {
@@ -404,7 +404,7 @@ static void xhci_pci_remove(struct pci_dev *dev)
 	}
 
 	/* Workaround for spurious wakeups at shutdown with HSW */
-	if (xhci->quirks & XHCI_SPURIOUS_WAKEUP)
+	if (USB_HAS_QUIRK(xhci, XHCI_SPURIOUS_WAKEUP))
 		pci_set_power_state(dev, PCI_D3hot);
 
 	usb_hcd_pci_remove(dev);
@@ -475,17 +475,17 @@ static int xhci_pci_suspend(struct usb_hcd *hcd, bool do_wakeup)
 	 * Systems with the TI redriver that loses port status change events
 	 * need to have the registers polled during D3, so avoid D3cold.
 	 */
-	if (xhci->quirks & XHCI_COMP_MODE_QUIRK)
+	if (USB_HAS_QUIRK(xhci, XHCI_COMP_MODE_QUIRK))
 		pci_d3cold_disable(pdev);
 
-	if (xhci->quirks & XHCI_PME_STUCK_QUIRK)
+	if (USB_HAS_QUIRK(xhci, XHCI_PME_STUCK_QUIRK))
 		xhci_pme_quirk(hcd);
 
-	if (xhci->quirks & XHCI_SSIC_PORT_UNUSED)
+	if (USB_HAS_QUIRK(xhci, XHCI_SSIC_PORT_UNUSED))
 		xhci_ssic_port_unused_quirk(hcd, true);
 
 	ret = xhci_suspend(xhci, do_wakeup);
-	if (ret && (xhci->quirks & XHCI_SSIC_PORT_UNUSED))
+	if (ret && (USB_HAS_QUIRK(xhci, XHCI_SSIC_PORT_UNUSED)))
 		xhci_ssic_port_unused_quirk(hcd, false);
 
 	return ret;
@@ -518,10 +518,10 @@ static int xhci_pci_resume(struct usb_hcd *hcd, bool hibernated)
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL)
 		usb_enable_intel_xhci_ports(pdev);
 
-	if (xhci->quirks & XHCI_SSIC_PORT_UNUSED)
+	if (USB_HAS_QUIRK(xhci, XHCI_SSIC_PORT_UNUSED))
 		xhci_ssic_port_unused_quirk(hcd, false);
 
-	if (xhci->quirks & XHCI_PME_STUCK_QUIRK)
+	if (USB_HAS_QUIRK(xhci, XHCI_PME_STUCK_QUIRK))
 		xhci_pme_quirk(hcd);
 
 	retval = xhci_resume(xhci, hibernated);
@@ -536,7 +536,7 @@ static void xhci_pci_shutdown(struct usb_hcd *hcd)
 	xhci_shutdown(hcd);
 
 	/* Yet another workaround for spurious wakeups at shutdown with HSW */
-	if (xhci->quirks & XHCI_SPURIOUS_WAKEUP)
+	if (USB_HAS_QUIRK(xhci, XHCI_SPURIOUS_WAKEUP))
 		pci_set_power_state(pdev, PCI_D3hot);
 }
 #endif /* CONFIG_PM */

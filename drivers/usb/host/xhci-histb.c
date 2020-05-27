@@ -171,7 +171,7 @@ static void xhci_histb_quirks(struct device *dev, struct xhci_hcd *xhci)
 	 * here that the generic code does not try to make a pci_dev from our
 	 * dev struct in order to setup MSI
 	 */
-	xhci->quirks |= XHCI_PLAT;
+	USB_ADD_QUIRK(xhci, XHCI_PLAT);
 }
 
 /* called during probe() after chip reset completes */
@@ -272,10 +272,10 @@ static int xhci_histb_probe(struct platform_device *pdev)
 	}
 
 	if (device_property_read_bool(dev, "usb2-lpm-disable"))
-		xhci->quirks |= XHCI_HW_LPM_DISABLE;
+		USB_ADD_QUIRK(xhci, XHCI_HW_LPM_DISABLE);
 
 	if (device_property_read_bool(dev, "usb3-lpm-capable"))
-		xhci->quirks |= XHCI_LPM_SUPPORT;
+		USB_ADD_QUIRK(xhci, XHCI_LPM_SUPPORT);
 
 	/* imod_interval is the interrupt moderation value in nanoseconds. */
 	xhci->imod_interval = 40000;

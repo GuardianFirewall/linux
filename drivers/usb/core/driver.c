@@ -1218,7 +1218,7 @@ static int usb_resume_device(struct usb_device *udev, pm_message_t msg)
 		device_pm_wait_for_dev(&udev->dev,
 				&udev->bus->hs_companion->root_hub->dev);
 
-	if (udev->quirks & USB_QUIRK_RESET_RESUME)
+	if (USB_HAS_QUIRK(udev, USB_QUIRK_RESET_RESUME))
 		udev->reset_resume = 1;
 
 	udriver = to_usb_device_driver(udev->dev.driver);
@@ -1512,7 +1512,7 @@ int usb_suspend(struct device *dev, pm_message_t msg)
 	if (r)
 		return r;
 
-	if (udev->quirks & USB_QUIRK_DISCONNECT_SUSPEND)
+	if (USB_HAS_QUIRK(udev, USB_QUIRK_DISCONNECT_SUSPEND))
 		usb_port_disable(udev);
 
 	return 0;
@@ -1845,7 +1845,7 @@ static int autosuspend_check(struct usb_device *udev)
 			 * a reset-resume and any of its interface drivers
 			 * doesn't include support or needs remote wakeup.
 			 */
-			if (udev->quirks & USB_QUIRK_RESET_RESUME) {
+			if (USB_HAS_QUIRK(udev, USB_QUIRK_RESET_RESUME)) {
 				struct usb_driver *driver;
 
 				driver = to_usb_driver(intf->dev.driver);
