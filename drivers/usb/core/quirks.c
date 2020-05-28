@@ -12,7 +12,13 @@
 #include <linux/usb/hcd.h>
 #include "usb.h"
 
-#ifndef CONFIG_USB_NO_QUIRKS
+#ifdef CONFIG_USB_NO_QUIRKS
+
+void usb_detect_quirks(struct usb_device *udev) { }
+void usb_detect_interface_quirks(struct usb_device *udev) { }
+void usb_release_quirk_list(void) { }
+
+#else
 
 struct quirk_entry {
 	u16 vid;
